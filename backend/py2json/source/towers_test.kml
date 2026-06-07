@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<kml xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+  <Document>
+    <name>佛山_三水_范湖变电站_721赤岗线-干线_N61-N66</name>
+    <utmn>49</utmn>
+    <StyleMap id="m_ylw-pushpin">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#s_ylw-pushpin</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#s_ylw-pushpin_hl</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Style id="s_ylw-pushpin_hl">
+      <IconStyle>
+        <color>ff1987ff</color>
+        <scale>1.4</scale>
+        <Icon>
+          <href>http://maps.google.com/mapfiles/kml/shapes/target.png</href>
+        </Icon>
+      </IconStyle>
+      <ListStyle/>
+    </Style>
+    <Placemark>
+      <name>61</name>
+      <styleUrl>#m_ylw-pushpin</styleUrl>
+      <Point>
+        <gx:drawOrder>61</gx:drawOrder>
+        <coordinates>113.00867163301479,23.33561451433581,7.65,-3.9899999999997817</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>62</name>
+      <styleUrl>#m_ylw-pushpin</styleUrl>
+      <Point>
+        <gx:drawOrder>62</gx:drawOrder>
+        <coordinates>113.00785027522282,23.336315713714193,8.92,-3.3400999999994383</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>63</name>
+      <styleUrl>#m_ylw-pushpin</styleUrl>
+      <Point>
+        <gx:drawOrder>63</gx:drawOrder>
+        <coordinates>113.00721982311359,23.33686138121673,8.55,-3.6000999999996566</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>64</name>
+      <styleUrl>#m_ylw-pushpin</styleUrl>
+      <Point>
+        <gx:drawOrder>64</gx:drawOrder>
+        <coordinates>113.00664231442688,23.33735544206592,9.06,-2.25</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>64+1</name>
+      <styleUrl>#m_ylw-pushpin</styleUrl>
+      <Point>
+        <gx:drawOrder>64+1</gx:drawOrder>
+        <coordinates>113.00602643029013,23.33788564324849,7.99,-5.199999999999818</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>65</name>
+      <styleUrl>#m_ylw-pushpin</styleUrl>
+      <Point>
+        <gx:drawOrder>65</gx:drawOrder>
+        <coordinates>113.00577883434913,23.338108943484865,8.1999,-3.899999999999636</coordinates>
+      </Point>
+    </Placemark>
+  </Document>
+</kml>

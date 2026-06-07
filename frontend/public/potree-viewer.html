@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="Potree 点云渲染器">
+    <meta name="author" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Potree 点云渲染器</title>
+
+    <link rel="stylesheet" type="text/css" href="/libs/potree/potree.css">
+    <link rel="stylesheet" type="text/css" href="/libs/jquery-ui/jquery-ui.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/openlayers3/ol.css">
+    <link rel="stylesheet" type="text/css" href="/libs/spectrum/spectrum.css">
+    <link rel="stylesheet" type="text/css" href="/libs/jstree/themes/default/style.min.css">
+</head>
+
+<body>
+    <script src="/libs/jquery/jquery-3.1.1.min.js"></script>
+    <script src="/libs/spectrum/spectrum.js"></script>
+    <script src="/libs/jquery-ui/jquery-ui.min.js"></script>
+    <script src="/libs/other/BinaryHeap.js"></script>
+    <script src="/libs/tween/tween.min.js"></script>
+    <script src="/libs/d3/d3.js"></script>
+    <script src="/libs/proj4/proj4.js"></script>
+    <script src="/libs/openlayers3/ol.js"></script>
+    <script src="/libs/i18next/i18next.js"></script>
+    <script src="/libs/jstree/jstree.min.js"></script>
+    <script src="/build/potree/potree.js"></script>
+    <script src="/libs/plasio/js/laslaz.js"></script>
+
+    <div class="potree_container" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px;">
+        <div id="potree_render_area"></div>
+        <div id="potree_sidebar_container"></div>
+    </div>
+    
+<script>
+    // 页面加载完成后执行
+    window.addEventListener('load', function() {
+        // 1. 从当前页面的 URL 中动态获取 'cloudUrl' 参数
+        const urlParams = new URLSearchParams(window.location.search);
+        const metadataUrl = urlParams.get('cloudUrl');
+
+        // 2. 检查参数是否存在
+        if (!metadataUrl) {
+            document.body.innerHTML = '<h1 style="color:red; text-align:center; margin-top: 50px;">错误：URL中缺少 cloudUrl 参数！</h1>';
+            console.error("URL parameter 'cloudUrl' is missing.");
+            return;
+        }
+
+        // 3. 初始化 Potree 查看器
+        const viewer = new Potree.Viewer(document.getElementById("potree_render_area"));
+
+        viewer.setEDLEnabled(true);
+        viewer.setFOV(60);
+        viewer.setPointBudget(5_000_000); // 增加点预算
+        viewer.setBackground("gradient"); 
+        viewer.setDescription("Potree 点云");
+        viewer.loadGUI(() => {
+            viewer.setLanguage("zh");
+            viewer.toggleSidebar();
+        });
+
+        // 4. 使用从URL中获取的 metadataUrl 路径加载点云
+        Potree.loadPointCloud(metadataUrl, "点云数据", function(e) {
+            if (e.type === 'pointcloud_loaded') {
+                console.log("点云加载成功!", e);
+                // 将点云添加到场景
+                viewer.scene.addPointCloud(e.pointcloud);
+
+                // 设置点云材质
+                let material = e.pointcloud.material;
+                material.size = 0.5;
+                material.pointSizeType = Potree.PointSizeType.ADAPTIVE;
+                material.shape = Potree.PointShape.CIRCLE;
+
+                // 自动调整视角以适应整个点云
+                viewer.fitToScreen();
+            } else if (e.type === 'loading_failed') {
+                console.error(`加载点云失败，请检查URL '${metadataUrl}' 是否正确并且可以访问。`);
+                alert(`加载点云失败！\n请检查后端静态文件服务是否开启，以及路径是否正确。\nURL: ${metadataUrl}`);
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

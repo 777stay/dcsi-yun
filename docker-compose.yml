@@ -1,0 +1,116 @@
+services:
+  frontend-service:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.frontend
+    container_name: yun-frontend
+    restart: always
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    volumes:
+      - ./shared_data/dist_data:/usr/share/nginx/html/dist/data
+      - ./shared_data/images:/usr/share/nginx/html/data/images
+      - ./shared_data/pointclouds:/usr/share/nginx/html/data/pointclouds
+      - ./shared_data/annotated:/usr/share/nginx/html/data/annotated_images
+      - ./shared_data/reports:/usr/share/nginx/html/data/report_images
+    depends_on:
+      - backend-service
+    networks:
+      - yun-net
+
+  backend-service:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.backend
+    container_name: yun-backend
+    restart: always
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+      - "${GRPC_PORT:-50052}:50052"
+    volumes:
+      - ./shared_data/dist_data:/app/dist/data
+      - ./shared_data/ply_files:/app/ply_files
+      - ./shared_data/images:/app/data/images
+      - ./shared_data/pointclouds:/app/data/pointclouds
+      - ./shared_data/annotated:/app/data/annotated_images
+      - ./shared_data/reports:/app/data/report_images
+      - ./shared_data/kml:/app/data/kml
+      - ./shared_data/change_potree_view:/app/change_potree_view
+      - ./kml_output:/app/py2json/cppFiles
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      SPRING_PROFILES_ACTIVE: prod1
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-mydatabase}?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      ROCKETMQ_NAME_SERVER: namesrv:9876
+      ROCKETMQ_NAMESRV_ADDR: namesrv:9876
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-change-this-jwt-secret-before-production}
+      FUSION_PUBLIC_PREFIX: ${FUSION_PUBLIC_PREFIX:-/dist/data}
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--Xms2g -Xmx4g -XX:+UseG1GC}
+    depends_on:
+      - mysql
+      - redis
+      - namesrv
+      - broker
+    networks:
+      - yun-net
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-mydatabase}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./deploy/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - yun-net
+
+  redis:
+    image: redis:6.2
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - yun-net
+
+  namesrv:
+    image: apache/rocketmq:4.9.4
+    container_name: namesrv
+    command: sh mqnamesrv
+    ports:
+      - "9876:9876"
+    networks:
+      - yun-net
+
+  broker:
+    image: apache/rocketmq:4.9.4
+    container_name: broker
+    command: sh mqbroker -n namesrv:9876 autoCreateTopicEnable=true
+    ports:
+      - "10909:10909"
+      - "10911:10911"
+    environment:
+      NAMESRV_ADDR: namesrv:9876
+      JAVA_OPT_EXT: -Xms256m -Xmx256m -Xmn128m
+    depends_on:
+      - namesrv
+    networks:
+      - yun-net
+
+networks:
+  yun-net:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: "1400"
+
+volumes:
+  mysql_data:

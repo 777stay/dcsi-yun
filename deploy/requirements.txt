@@ -1,0 +1,10 @@
+numpy
+opencv-python-headless
+pandas
+matplotlib
+reportlab
+open3d
+pyproj
+ultralytics
+PyMuPDF
+Pillow

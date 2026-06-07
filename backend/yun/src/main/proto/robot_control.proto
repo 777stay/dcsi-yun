@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package robot_control;
+option java_package = "com.example.robotbackend.robot_control";
+option java_outer_classname = "RobotControlProto";
+service ControlService {
+  // 双向流式 RPC：机器人发送数据，控制站发送命令
+  rpc StreamRobotData (stream RobotData) returns (stream Command);
+}
+
+// 机器人发送给控制站的数据
+message RobotData {
+  string robot_id = 1;          // 机器人唯一ID
+  string timestamp = 2;         // 数据生成时间戳 (例如 ISO 8601 格式)
+  float cpu_percent = 3;        // CPU 使用率百分比
+  float ram_percent = 4;        // 内存使用率百分比
+  string current_status_message = 5;
+
+}
+
+// 控制站发送给机器人的命令
+message Command {
+  string command_id = 1;        // 命令唯一ID
+  string target_robot_id = 2;   // 目标机器人ID
+  enum CommandType {
+    // 机器人端控制命令
+    RUN_WAYPOINT_MODE = 0; // 任务点模式
+    STOP_WAYPOINT_MODE = 1;
+    RUN_EXPLORE_MODE = 2; // 自主探索模式
+    STOP_EXPLORE_MODE = 3;
+    RUN_RECORD_DAYA = 4;  // 数据录制
+    STOP_RECORD_DAYA = 5;
+
+    // 地面站端控制命令
+    RUN_MULTI_ALIGNMENT = 6;  // 多机配准
+    RUN_MULTI_DATA_VIEW = 7;  // 多机数据查看
+    RUN_MULTI_DATA_RECORD = 8; // 多机数据录制
+
+  }
+  CommandType command_type = 3;
+  string script_path = 4;       // 要运行的脚本路径
+  repeated string script_args = 5; // 脚本参数列表
+}

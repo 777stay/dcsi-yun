@@ -1,0 +1,55 @@
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.iml
+
+# Logs / temp
+*.log
+logs/
+tmp/
+temp/
+
+# Environment
+.env
+.env.local
+
+# Backend build
+backend/**/target/
+backend/**/out/
+*.class
+
+# Frontend build
+frontend/node_modules/
+frontend/dist/
+frontend/public/dist/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Large runtime data. Keep directory placeholders only.
+shared_data/**
+!shared_data/
+!shared_data/**/
+!shared_data/**/.gitkeep
+kml_output/**
+!kml_output/
+!kml_output/.gitkeep
+
+# Point cloud / generated GIS data
+*.pcd
+*.ply
+*.las
+*.laz
+*.e57
+*.bag
+*.bin
+# Legacy generated/test data copied from the original deployment
+backend/py2json/source/*.tif
+backend/py2json/cppFiles/
+backend/yun/yun/data/
+backend/yun/yun/dist/
+backend/yun/yun/ply_files/
+
+# Local helper binaries or cleanup tools
+bfg-*.jar

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <!-- <link rel="stylesheet" type="text/css" href="<%= BASE_URL %>vendor/potree/build/potree/potree.css">
+    <link rel="stylesheet" type="text/css" href="<%= BASE_URL %>vendor/potree/libs/jquery-ui/jquery-ui.min.css">
+    <link rel="stylesheet" type="text/css" href="<%= BASE_URL %>vendor/potree/libs/spectrum/spectrum.css">
+    
+    <script src="<%= BASE_URL %>vendor/potree/libs/jquery/jquery-3.1.1.min.js"></script>
+    <script src="<%= BASE_URL %>vendor/potree/libs/jquery-ui/jquery-ui.min.js"></script>
+    <script src="<%= BASE_URL %>vendor/potree/libs/three.js/build/three.min.js"></script>
+    <script src="<%= BASE_URL %>vendor/potree/libs/tween/tween.min.js"></script>
+    
+    <script src="<%= BASE_URL %>vendor/potree/build/potree/potree.js"></script>
+    <title><%= webpackConfig.name %></title>
+    <script>
+      // 全局库状态管理
+      window.LibraryStatus = {
+        three: false,
+        potree: false,
+        controls: false,
+        allLoaded: false,
+        errors: []
+      }
+      
+      // 检查库加载状态
+      function checkLibraryStatus() {
+        // 检查Three.js
+        if (typeof THREE !== 'undefined') {
+          window.LibraryStatus.three = true
+          console.log('✓ Three.js 加载成功, 版本:', THREE.REVISION)
+        } else {
+          window.LibraryStatus.errors.push('Three.js 未加载')
+        }
+        
+        // 检查OrbitControls
+        if (typeof THREE !== 'undefined' && THREE.OrbitControls) {
+          window.LibraryStatus.controls = true
+          console.log('✓ OrbitControls 加载成功')
+        } else {
+          console.warn('⚠ OrbitControls 未加载，将使用基础控制')
+          window.LibraryStatus.controls = true // 设为true以免阻塞
+        }
+        
+        // 检查Potree
+        if (typeof Potree !== 'undefined') {
+          window.LibraryStatus.potree = true
+          console.log('✓ Potree 加载成功')
+          console.log('Potree 可用属性:', Object.keys(Potree))
+          
+          // 检查Viewer构造函数
+          if (Potree.Viewer && typeof Potree.Viewer === 'function') {
+            window.POTREE_VIEWER_TYPE = 'Potree.Viewer'
+            console.log('✓ 使用 Potree.Viewer')
+          } else if (Potree.WebGLViewer && typeof Potree.WebGLViewer === 'function') {
+            window.POTREE_VIEWER_TYPE = 'Potree.WebGLViewer'
+            console.log('✓ 使用 Potree.WebGLViewer')
+          } else {
+            console.log('⚠ 没有找到标准的Viewer构造函数，将使用Three.js原生方案')
+            window.POTREE_VIEWER_TYPE = 'fallback'
+          }
+        } else {
+          console.warn('⚠ Potree 未加载，将使用Three.js原生方案')
+          window.LibraryStatus.potree = true // 设为true以免阻塞
+          window.POTREE_VIEWER_TYPE = 'fallback'
+        }
+        
+        // 检查是否全部加载完成
+        window.LibraryStatus.allLoaded = 
+          window.LibraryStatus.three && 
+          window.LibraryStatus.potree && 
+          window.LibraryStatus.controls
+        
+        if (window.LibraryStatus.allLoaded) {
+          console.log('🎉 所有库加载完成!')
+        } else {
+          console.error('❌ 库加载失败:', window.LibraryStatus.errors)
+        }
+      }
+      
+      // DOM加载完成后检查库状态
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM 加载完成，检查库状态...')
+        
+        // 稍微延迟检查，确保所有脚本都加载完成
+        setTimeout(checkLibraryStatus, 100)
+      })
+      
+      // 全局Potree查看器初始化函数
+      window.initializePotreeViewer = function(container) {
+        console.log('🚀 开始初始化Potree查看器')
+        
+        if (!container) {
+          throw new Error('容器元素不存在')
+        }
+        
+        // 根据可用的库选择初始化方式
+        try {
+          if (window.POTREE_VIEWER_TYPE === 'Potree.Viewer') {
+            console.log('使用 Potree.Viewer 初始化')
+            const viewer = new Potree.Viewer(container)
+            console.log('✓ Potree.Viewer 初始化成功')
+            return viewer
+            
+          } else if (window.POTREE_VIEWER_TYPE === 'Potree.WebGLViewer') {
+            console.log('使用 Potree.WebGLViewer 初始化')
+            const viewer = new Potree.WebGLViewer(container)
+            console.log('✓ Potree.WebGLViewer 初始化成功')
+            return viewer
+            
+          } else {
+            console.log('使用 Three.js 原生方案初始化')
+            return createThreeJSViewer(container)
+          }
+          
+        } catch (error) {
+          console.error('Potree 初始化失败，回退到 Three.js 方案:', error)
+          return createThreeJSViewer(container)
+        }
+      }
+      
+      // Three.js 原生查看器实现
+      function createThreeJSViewer(container) {
+        console.log('创建 Three.js 原生查看器')
+        
+        if (typeof THREE === 'undefined') {
+          throw new Error('THREE 库不可用')
+        }
+        
+        // 创建基础三维场景
+        const scene = new THREE.Scene()
+        const camera = new THREE.PerspectiveCamera(
+          75,
+          container.clientWidth / container.clientHeight,
+          0.1,
+          1000
+        )
+        
+        const renderer = new THREE.WebGLRenderer({ 
+          antialias: true,
+          alpha: true
+        })
+        renderer.setSize(container.clientWidth, container.clientHeight)
+        renderer.setClearColor(0x87CEEB, 1.0) // 天蓝色背景
+        renderer.shadowMap.enabled = true
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap
+        container.appendChild(renderer.domElement)
+        
+        // 添加控制器
+        let controls = null
+        if (THREE.OrbitControls) {
+          controls = new THREE.OrbitControls(camera, renderer.domElement)
+          controls.enableDamping = true
+          controls.dampingFactor = 0.1
+          controls.enableZoom = true
+          controls.enableRotate = true
+          controls.enablePan = true
+          console.log('✓ OrbitControls 已启用')
+        } else {
+          console.log('⚠ OrbitControls 不可用，使用基础鼠标控制')
+          addBasicMouseControls(camera, renderer.domElement)
+        }
+        
+        // 添加灯光系统
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
+        scene.add(ambientLight)
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8)
+        directionalLight.position.set(50, 50, 50)
+        directionalLight.castShadow = true
+        directionalLight.shadow.mapSize.width = 2048
+        directionalLight.shadow.mapSize.height = 2048
+        scene.add(directionalLight)
+        
+        // 添加辅助网格
+        const gridHelper = new THREE.GridHelper(100, 100, 0x888888, 0x444444)
+        scene.add(gridHelper)
+        
+        // 添加坐标轴
+        const axesHelper = new THREE.AxesHelper(10)
+        scene.add(axesHelper)
+        
+        // 设置相机初始位置
+        camera.position.set(20, 20, 20)
+        camera.lookAt(0, 0, 0)
+        
+        // 渲染循环
+        function animate() {
+          requestAnimationFrame(animate)
+          
+          if (controls) {
+            controls.update()
+          }
+          
+          renderer.render(scene, camera)
+        }
+        animate()
+        
+        // 窗口大小调整处理
+        function handleResize() {
+          const width = container.clientWidth
+          const height = container.clientHeight
+          
+          camera.aspect = width / height
+          camera.updateProjectionMatrix()
+          renderer.setSize(width, height)
+        }
+        
+        window.addEventListener('resize', handleResize)
+        
+        // 返回类似 Potree.Viewer 的接口
+        return {
+          scene: scene,
+          camera: camera,
+          renderer: renderer,
+          controls: controls,
+          
+          // 模拟 Potree API
+          setPointSize: function(size) {
+            console.log('设置点大小:', size)
+            // 更新场景中所有点云的大小
+            scene.traverse((child) => {
+              if (child instanceof THREE.Points && child.material) {
+                child.material.size = size
+                child.material.needsUpdate = true
+              }
+            })
+          },
+          
+          setPointBudget: function(budget) {
+            console.log('设置点预算:', budget)
+            // 这里可以实现点云LOD逻辑
+          },
+          
+          setEDLEnabled: function(enabled) {
+            console.log('设置EDL:', enabled)
+            // 可以在这里实现后处理效果
+          },
+          
+          setFOV: function(fov) {
+            camera.fov = fov
+            camera.updateProjectionMatrix()
+          },
+          
+          setBackground: function(bg) {
+            if (bg === 'gradient') {
+              renderer.setClearColor(0x87CEEB, 1.0)
+            } else if (bg === 'black') {
+              renderer.setClearColor(0x000000, 1.0)
+            } else if (bg === 'white') {
+              renderer.setClearColor(0xffffff, 1.0)
+            } else if (bg === 'skybox') {
+              // 可以在这里添加天空盒
+              renderer.setClearColor(0x87CEEB, 1.0)
+            }
+          },
+          
+          // 添加点云到场景
+          addPointCloud: function(pointCloud) {
+            scene.add(pointCloud)
+            console.log('点云已添加到场景')
+          },
+          
+          // 移除点云
+          removePointCloud: function(pointCloud) {
+            scene.remove(pointCloud)
+            console.log('点云已从场景移除')
+          },
+          
+          // 清理资源
+          dispose: function() {
+            window.removeEventListener('resize', handleResize)
+            
+            if (renderer.domElement.parentNode) {
+              renderer.domElement.parentNode.removeChild(renderer.domElement)
+            }
+            
+            // 清理几何体和材质
+            scene.traverse((child) => {
+              if (child.geometry) {
+                child.geometry.dispose()
+              }
+              if (child.material) {
+                if (Array.isArray(child.material)) {
+                  child.material.forEach(material => material.dispose())
+                } else {
+                  child.material.dispose()
+                }
+              }
+            })
+            
+            renderer.dispose()
+            console.log('查看器资源已清理')
+          }
+        }
+      }
+      
+      // 基础鼠标控制（当OrbitControls不可用时）
+      function addBasicMouseControls(camera, domElement) {
+        let isMouseDown = false
+        let mouseX = 0, mouseY = 0
+        
+        domElement.addEventListener('mousedown', (e) => {
+          isMouseDown = true
+          mouseX = e.clientX
+          mouseY = e.clientY
+        })
+        
+        domElement.addEventListener('mousemove', (e) => {
+          if (!isMouseDown) return
+          
+          const deltaX = e.clientX - mouseX
+          const deltaY = e.clientY - mouseY
+          
+          // 简单的相机旋转
+          const spherical = new THREE.Spherical()
+          spherical.setFromVector3(camera.position)
+          spherical.theta -= deltaX * 0.01
+          spherical.phi += deltaY * 0.01
+          spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi))
+          
+          camera.position.setFromSpherical(spherical)
+          camera.lookAt(0, 0, 0)
+          
+          mouseX = e.clientX
+          mouseY = e.clientY
+        })
+        
+        domElement.addEventListener('mouseup', () => {
+          isMouseDown = false
+        })
+        
+        domElement.addEventListener('wheel', (e) => {
+          const scale = e.deltaY > 0 ? 1.1 : 0.9
+          camera.position.multiplyScalar(scale)
+        })
+        
+        console.log('✓ 基础鼠标控制已启用')
+      }
+    </script> -->
+    <link rel="stylesheet" type="text/css" href="./Potree/build/potree/potree.css" />
+    <link rel="stylesheet" type="text/css" href="./Potree/libs/jquery-ui/jquery-ui.min.css" />
+    <link rel="stylesheet" type="text/css" href="./Potree/libs/openlayers3/ol.css" />
+    <link rel="stylesheet" type="text/css" href="./Potree/libs/spectrum/spectrum.css" />
+    <link rel="stylesheet" type="text/css" href="./Potree/libs/jstree/themes/mixed/style.css" />  
+  </head>
+  <body>
+    <noscript>
+      <strong>We're sorry but <%= webpackConfig.name %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <div id="app"></div>
+    <script src="./Potree/libs/jquery/jquery-3.1.1.min.js"></script>
+    <script src="./Potree/libs/spectrum/spectrum.js"></script>
+    <script src="./Potree/libs/jquery-ui/jquery-ui.min.js"></script>
+    <script src="./Potree/libs/three.js/build/three.min.js"></script>
+    <script src="./Potree/libs/other/BinaryHeap.js"></script>
+    <script src="./Potree/libs/tween/tween.min.js"></script>
+    <script src="./Potree/libs/d3/d3.js"></script>
+    <script src="./Potree/libs/proj4/proj4.js"></script>
+    <script src="./Potree/libs/openlayers3/ol.js"></script>
+    <script src="./Potree/libs/i18next/i18next.js"></script>
+    <script src="./Potree/libs/jstree/jstree.js"></script>
+    <script src="./Potree/build/potree/potree.js"></script>
+    <script src="./Potree/libs/plasio/js/laslaz.js"></script>
+    <!-- built files will be auto injected -->
+    <script src="https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splats-3d@0.5.0/build/gaussian-splats-3d.umd.cjs"></script>
+  </body>
+</html>

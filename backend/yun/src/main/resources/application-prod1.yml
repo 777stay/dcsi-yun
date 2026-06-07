@@ -1,0 +1,125 @@
+server:
+  port: 8080
+  tomcat:
+    uri-encoding: UTF-8
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.whu.yun.mybatis.entity
+
+spring:
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/yun?useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: "${MYSQL_ROOT_PASSWORD:change-this-database-password}"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  servlet:
+    multipart:
+      max-request-size: 2GB
+      max-file-size: 1GB
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    database: 0
+
+grpc:
+  server:
+    port: 50052
+    address: 0.0.0.0
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.whu.yun.entity
+  configuration:
+    map-underscore-to-camel-case: true
+
+rocketmq:
+  name-server: 127.0.0.1:9876
+  topic: RobotDataTopic
+  consumer:
+    group: PointCloudConsumerGroup
+  producer:
+    group: robot-producer-group
+
+project:
+  path: /app
+
+upload:
+  path: ${project.path}/headImgs
+
+ply:
+  storage:
+    # PLY 文件存储的临时目录, ./ 表示相对于项目启动目录
+    path: ./ply_files/
+  potreeStorge:
+    path: ./dist/data/
+
+potree:
+  converter:
+    # PotreeConverter 可执行文件的路径 (注意：.exe已移除, 请确保已安装Linux版本)
+    path: ${project.path}/yun/PotreeConverter/build/PotreeConverter
+  metajsonUrl:
+    path: ${project.path}/dist/data/
+
+fusion:
+  workspace-root: /app/change_potree_view
+  default-dataset: 20260603-094908
+  runner-path: /app/scripts/fusion_runner.py
+  script-path: ${fusion.workspace-root}/20260603-094908/fuse_cloud_instances_3d_multi_uav_scattered_pcd.py
+  public-prefix: ${FUSION_PUBLIC_PREFIX:/dist/data}
+  docker:
+    enabled: false
+
+py2json:
+  path: ${project.path}/py2json
+
+lib:
+  path: ${project.path}/yun/lib
+
+utils:
+  path: ${project.path}/yun/src/main/java/com/whu/yun/utils
+
+# 配置python解释器，若使用默认则使用第一个
+python:
+  path: python3
+  executable: python3
+  script:
+    # Python 脚本相对于项目根目录的路径
+    path: scripts/converter.py
+    pylon-check-path: "src/main/resources/scripts/check_tower_existence.py"
+    change-detection-path: "src/main/resources/scripts/ply-changedetection.py"
+    detectPlyPath: scripts/ply-changedetection.py
+    kmlCoordTransPath: scripts/kml-coord-trans.py
+  # path: /usr/bin/python3 # 也可以使用绝对路径
+
+app:
+  file-storage:
+    image-path: "${project.path}/data/images"
+    point-cloud-path: "${project.path}/data/pointclouds/"
+    annotated-image-path: "${project.path}/data/annotated_images/"
+    kml-path: "${project.path}/data/kml/"
+    report-image-path: "${project.path}/data/report_images/"
+  jwt:
+    secret: "${APP_JWT_SECRET:change-this-jwt-secret-before-production}"
+    expiration-ms: 86400000
+  robots:
+    robot:
+      display_name: "控制站"
+    robot_01:
+      display_name: "无人机M400"
+    robot_02:
+      display_name: "无人机M400"
+    robot_03:
+      display_name: "无人机"
+  python:
+    interpreter-path: "python3"
+    # 目标检测脚本的完整路径 (已修改)
+    detection-script-path: "${project.path}/image_test/detect_to_excel.py"
+    # 模型权重文件的完整路径 (已修改)
+    model-weight-path: "${project.path}/image_test/weights/epoch80.pt"
+    # 检测结果(带标注的图片)的存储目录 (已修改)
+    annotated-image-path: "${project.path}/data/annotated_images/"
+    # 【新增】报告生成脚本路径
+    report-script-path: "${project.path}/image_test/generate_pdf_report.py" # 请根据实际路径修改
+    # 【新增】置信度阈值
+    confidence-threshold: 0.5 # 根据需要调整置信度阈值

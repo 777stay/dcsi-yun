@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.whu.yun.mapper.DataQueryMapper">
+
+    <!-- 查询所有不同的机器人ID -->
+    <select id="getDistinctRobotIds" resultType="java.lang.String">
+        SELECT DISTINCT robot_id FROM point_cloud_data
+        UNION
+        SELECT DISTINCT robot_id FROM image_data
+        UNION
+        SELECT DISTINCT robot_id FROM odometry_data
+        ORDER BY robot_id
+    </select>
+
+    <!-- 根据机器人ID查询点云frame列表（不带receptionCount） -->
+    <select id="getPointCloudFramesByRobotId" resultType="java.lang.String">
+        SELECT DISTINCT frame_id
+        FROM point_cloud_data
+        WHERE robot_id = #{robotId}
+        ORDER BY frame_id ASC
+    </select>
+
+    <!-- 根据机器人ID查询图像session列表（不带receptionCount） -->
+    <select id="getImageSessionsByRobotId" resultType="java.lang.String">
+        SELECT DISTINCT session_id
+        FROM image_data
+        WHERE robot_id = #{robotId}
+        ORDER BY session_id ASC
+    </select>
+
+    <!-- 根据机器人ID和frameId查询点云列表（不带receptionCount） -->
+    <select id="findPointCloudsByFrame" resultType="com.whu.yun.entity.PointCloudEntity">
+        SELECT *
+        FROM point_cloud_data
+        WHERE robot_id = #{robotId}
+          AND frame_id = #{frameId}
+        ORDER BY timestamp DESC
+    </select>
+
+    <!-- 根据机器人ID和sessionId查询图像列表（不带receptionCount） -->
+    <select id="findImagesBySession" resultType="com.whu.yun.entity.ImageEntity">
+        SELECT *
+        FROM image_data
+        WHERE robot_id = #{robotId}
+          AND session_id = #{sessionId}
+        ORDER BY timestamp DESC
+    </select>
+
+    <!-- 根据机器人ID和receptionCount查询点云frame列表 -->
+    <select id="findPointCloudFramesByRobotId" resultType="java.lang.String">
+        SELECT DISTINCT frame_id
+        FROM point_cloud_data
+        WHERE robot_id = #{robotId}
+          AND reception_count = #{receptionCount}
+        ORDER BY frame_id ASC
+    </select>
+
+    <!-- 根据机器人ID和receptionCount查询图像session列表 -->
+    <select id="findImageSessionsByRobotId" resultType="java.lang.String">
+        SELECT DISTINCT session_id
+        FROM image_data
+        WHERE robot_id = #{robotId}
+          AND reception_count = #{receptionCount}
+        ORDER BY session_id ASC
+    </select>
+
+    <!-- 分页查询点云数据（带receptionCount） - MyBatis-Plus会自动处理分页 -->
+    <select id="findPointCloudsByFrame" resultType="com.whu.yun.dto.DataQueryDto$PointCloud">
+        SELECT
+            id, timestamp, file_path, point_count, reception_count, frame_id
+        FROM
+            point_cloud_data
+        WHERE
+            robot_id = #{robotId}
+          AND frame_id = #{frame}
+          AND reception_count = #{receptionCount}
+        ORDER BY
+            timestamp DESC
+    </select>
+
+    <!-- 分页查询图像数据（带receptionCount） - MyBatis-Plus会自动处理分页 -->
+    <select id="findImagesBySession" resultType="com.whu.yun.dto.DataQueryDto$Image">
+        SELECT
+            id, timestamp, file_path, format, reception_count, session_id, width, height
+        FROM
+            image_data
+        WHERE
+            robot_id = #{robotId}
+          AND session_id = #{session}
+          AND reception_count = #{receptionCount}
+        ORDER BY
+            timestamp DESC
+    </select>
+
+    <!-- 分页查询路径数据（带receptionCount） - MyBatis-Plus会自动处理分页 -->
+    <select id="findOdometryByRobotId" resultType="com.whu.yun.dto.DataQueryDto$Odometry">
+        SELECT
+            id, timestamp, pos_x, pos_y, pos_z, orient_x, orient_y, orient_z, orient_w, reception_count, frame_id
+        FROM
+            odometry_data
+        WHERE
+            robot_id = #{robotId}
+          AND reception_count = #{receptionCount}
+        ORDER BY
+            timestamp ASC
+    </select>
+
+</mapper>

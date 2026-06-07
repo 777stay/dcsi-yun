@@ -1,0 +1,52 @@
+FROM maven:3.8.8-eclipse-temurin-8 AS build
+
+WORKDIR /workspace
+COPY backend/yun/pom.xml ./pom.xml
+COPY backend/yun/lib ./lib
+RUN mvn -B -DskipTests dependency:go-offline
+COPY backend/yun ./
+RUN mvn -B -DskipTests package
+
+FROM eclipse-temurin:8-jre-jammy
+
+ENV TZ=Asia/Shanghai
+WORKDIR /app
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        libgomp1 \
+        pdal \
+        python3 \
+        python3-pip \
+        python3-setuptools \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY deploy/requirements.txt /tmp/requirements.txt
+RUN python3 -m pip install --no-cache-dir --upgrade pip \
+    && python3 -m pip install --no-cache-dir \
+        --index-url https://download.pytorch.org/whl/cpu \
+        torch torchvision \
+    && python3 -m pip install --no-cache-dir -r /tmp/requirements.txt
+
+COPY --from=build /workspace/target/yun-0.0.1-SNAPSHOT.jar /app/app.jar
+COPY backend/yun/scripts /app/scripts
+COPY backend/yun/py2json /app/py2json
+COPY backend/yun/PotreeConverter /app/yun/PotreeConverter
+
+RUN chmod +x /app/yun/PotreeConverter/build/PotreeConverter || true \
+    && mkdir -p \
+        /app/dist/data \
+        /app/ply_files \
+        /app/data/images \
+        /app/data/pointclouds \
+        /app/data/annotated_images \
+        /app/data/report_images \
+        /app/data/kml \
+        /app/change_potree_view \
+        /app/py2json/cppFiles
+
+EXPOSE 8080 50052
+
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

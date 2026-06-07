@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.whu.yun.mapper.ImageMapper">
+
+    <insert id="insertImage" parameterType="com.whu.yun.entity.ImageEntity" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO image_data (robot_id, session_id, format, width, height, file_path, timestamp,reception_count)
+        VALUES (#{robotId}, #{sessionId}, #{format}, #{width}, #{height}, #{filePath}, #{timestamp},#{receptionCount})
+    </insert>
+
+    <select id="findById" parameterType="long" resultType="com.whu.yun.entity.ImageEntity">
+        SELECT id, robot_id, session_id, format, width, height, file_path, timestamp,reception_count
+        FROM image_data
+        WHERE id = #{id}
+    </select>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM image_data WHERE id = #{id}
+    </delete>
+    <select id="findByRobotId" parameterType="string" resultType="com.whu.yun.entity.ImageEntity">
+        SELECT * FROM image_data WHERE robot_id = #{robotId} ORDER BY timestamp DESC
+    </select>
+
+</mapper>

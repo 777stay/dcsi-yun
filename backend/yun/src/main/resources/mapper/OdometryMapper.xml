@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.whu.yun.mapper.OdometryMapper">
+
+    <insert id="insertOdometry" parameterType="com.whu.yun.entity.OdometryEntity" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO odometry_data (robot_id, frame_id, pos_x, pos_y, pos_z, orient_x, orient_y, orient_z, orient_w, timestamp,reception_count)
+        VALUES (#{robotId}, #{frameId}, #{posX}, #{posY}, #{posZ}, #{orientX}, #{orientY}, #{orientZ}, #{orientW}, #{timestamp},#{receptionCount})
+    </insert>
+    <select id="findByRobotId" parameterType="string" resultType="com.whu.yun.entity.OdometryEntity">
+        SELECT * FROM odometry_data WHERE robot_id = #{robotId} ORDER BY timestamp ASC
+    </select>
+
+    <select id="findLatestByRobotId" parameterType="string" resultType="com.whu.yun.entity.OdometryEntity">
+        SELECT *
+        FROM odometry_data
+        WHERE robot_id = #{robotId}
+        ORDER BY timestamp DESC
+        LIMIT 1
+    </select>
+</mapper>

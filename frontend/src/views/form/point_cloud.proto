@@ -1,0 +1,30 @@
+//使用proto3语法
+syntax = "proto3";
+package com.whu.yun.grpc.pointcloud;
+//package com.whu.pd;
+//生成多个java文件
+option java_multiple_files = true;
+//把生成的文件放到哪个包下
+option java_package = "com.whu.yun.grpc.pointcloud";
+//输出的类名
+option java_outer_classname = "PointCloudProto";
+
+service PointCloudService {
+  rpc GetPointCloud (PointCloudRequest) returns (PointCloudResponse);
+}
+
+//session_id 用于标识一个客户端与服务器之间的交互会话
+message PointCloudRequest {
+  string session_id = 1;
+}
+
+message PointCloudResponse {
+  repeated PointXYZI points = 1;
+}
+
+message PointXYZI {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+  float intensity = 4;
+}

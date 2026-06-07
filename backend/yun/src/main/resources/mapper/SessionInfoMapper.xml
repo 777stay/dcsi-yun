@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.whu.yun.mapper.SessionInfoMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="SessionInfoResultMap" type="com.whu.yun.entity.SessionInfo">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="session_count" property="sessionCount" jdbcType="BIGINT"/>
+        <result column="start_time" property="startTime" jdbcType="TIMESTAMP"/>
+        <result column="end_time" property="endTime" jdbcType="TIMESTAMP"/>
+        <result column="status" property="status" jdbcType="VARCHAR" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 时间区间DTO结果映射 -->
+    <resultMap id="SessionTimeRangeDtoResultMap" type="com.whu.yun.dto.SessionTimeRangeDto">
+        <result column="reception_count" property="receptionCount" jdbcType="BIGINT"/>
+        <result column="min_time" property="minTime" jdbcType="TIMESTAMP"/>
+        <result column="max_time" property="maxTime" jdbcType="TIMESTAMP"/>
+        <result column="time_range_display" property="timeRangeDisplay" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 插入会话记录 -->
+    <insert id="insertSession" parameterType="com.whu.yun.entity.SessionInfo" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO session_info (
+            session_count,
+            start_time,
+            end_time,
+            status
+        ) VALUES (
+                     #{sessionCount,jdbcType=BIGINT},
+                     #{startTime,jdbcType=TIMESTAMP},
+                     #{endTime,jdbcType=TIMESTAMP},
+                     #{status,jdbcType=VARCHAR,typeHandler=org.apache.ibatis.type.EnumTypeHandler}
+                 )
+    </insert>
+
+    <!-- 更新会话记录 -->
+    <update id="updateSession" parameterType="com.whu.yun.entity.SessionInfo">
+        UPDATE session_info
+        SET
+            end_time = #{endTime,jdbcType=TIMESTAMP},
+            status = #{status,jdbcType=VARCHAR,typeHandler=org.apache.ibatis.type.EnumTypeHandler}
+        WHERE session_count = #{sessionCount,jdbcType=BIGINT}
+    </update>
+
+    <!-- 根据会话次数查询 -->
+    <select id="selectBySessionCount" resultMap="SessionInfoResultMap">
+        SELECT id, session_count, start_time, end_time, status, created_at, updated_at
+        FROM session_info
+        WHERE session_count = #{sessionCount,jdbcType=BIGINT}
+    </select>
+
+    <!-- 查询所有会话，按会话次数升序 -->
+    <select id="selectAllOrderBySessionCountAsc" resultMap="SessionInfoResultMap">
+        SELECT id, session_count, start_time, end_time, status, created_at, updated_at
+        FROM session_info
+        ORDER BY session_count ASC
+    </select>
+
+    <!-- 根据状态查询会话 -->
+    <select id="selectByStatus" resultMap="SessionInfoResultMap">
+        SELECT id, session_count, start_time, end_time, status, created_at, updated_at
+        FROM session_info
+        WHERE status = #{status,jdbcType=VARCHAR}
+            LIMIT 1
+    </select>
+
+    <!-- 获取最大会话次数 -->
+    <select id="selectMaxSessionCount" resultType="java.lang.Long">
+        SELECT MAX(session_count)
+        FROM session_info
+    </select>
+
+    <!-- 直接查询会话时间区间DTO（优化查询，直接返回前端需要的格式） -->
+    <select id="selectAllSessionTimeRanges" resultMap="SessionTimeRangeDtoResultMap">
+        SELECT
+            session_count as reception_count,
+            start_time as min_time,
+            end_time as max_time,
+            CASE
+                WHEN end_time IS NULL THEN CONCAT(DATE_FORMAT(start_time, '%Y-%m-%d %H:%i:%s'), ' ~ 进行中')
+                ELSE CONCAT(DATE_FORMAT(start_time, '%Y-%m-%d %H:%i:%s'), ' ~ ', DATE_FORMAT(end_time, '%Y-%m-%d %H:%i:%s'))
+                END as time_range_display
+        FROM session_info
+        ORDER BY session_count ASC
+    </select>
+
+    <!-- 根据会话次数查询时间区间 -->
+    <select id="selectSessionTimeRangeByCount" resultMap="SessionTimeRangeDtoResultMap">
+        SELECT
+            session_count as reception_count,
+            start_time as min_time,
+            end_time as max_time,
+            CASE
+                WHEN end_time IS NULL THEN CONCAT(DATE_FORMAT(start_time, '%Y-%m-%d %H:%i:%s'), ' ~ 进行中')
+                ELSE CONCAT(DATE_FORMAT(start_time, '%Y-%m-%d %H:%i:%s'), ' ~ ', DATE_FORMAT(end_time, '%Y-%m-%d %H:%i:%s'))
+                END as time_range_display
+        FROM session_info
+        WHERE session_count = #{sessionCount,jdbcType=BIGINT}
+    </select>
+
+    <!-- 根据ID删除会话 -->
+    <delete id="deleteById">
+        DELETE FROM session_info WHERE id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <!-- 根据会话次数删除会话 -->
+    <delete id="deleteBySessionCount">
+        DELETE FROM session_info WHERE session_count = #{sessionCount,jdbcType=BIGINT}
+    </delete>
+
+</mapper>

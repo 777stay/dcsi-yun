@@ -1,0 +1,113 @@
+syntax = "proto3";
+package comm_base.comm_proto;
+option java_package = "com.example.robotbackend.comm";
+option java_outer_classname = "CommBaseProto";
+enum PacketType {
+    PACKET_NONE = 0;
+    PACKET_HEARBEAT = 1;
+    PACKET_MAP = 2;
+    PACKET_NAV = 3;
+    PACKET_IMAGE = 4;
+    PACKET_ODOM = 5;
+    PACKET_POINTCLOUD_XYZI = 6;
+    PACKET_POINTCLOUD_XYZRGB = 7;
+    PACKET_POSE = 8;
+}
+
+message PointXYZI {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+    float intensity = 4;
+}
+
+message PointXYZRGB {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+    uint32 r = 4;
+    uint32 g = 5;
+    uint32 b = 6;
+}
+
+message Quaternion {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+    float w = 4;
+}
+
+message Pose {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+    Quaternion orientation = 4;
+}
+
+message PointCloudXYZI {
+    string session_id = 1;
+    repeated PointXYZI points = 2;
+}
+
+message PointCloudXYZRGB {
+    string session_id = 1;
+    repeated PointXYZRGB points = 2;
+}
+
+message ImageBody {
+    string session_id = 1;
+    bytes data = 2; // Binary image data
+    string format = 3; // Image format (e.g., "jpeg", "png")
+    uint32 width = 4; // Image width
+    uint32 height = 5; // Image height
+}
+
+message OdomBody {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+    Quaternion orientation = 4;
+    float linear_velocity = 5;
+    float angular_velocity = 6;
+}
+
+message DemoBody {
+    string something = 1;
+}
+
+message BasePacket {
+    PacketType type = 1;
+    string sender = 2;
+    int32 seq = 3;
+    string frame = 4;
+    double second = 5;
+    uint32 nanosecond = 6;
+    oneof body {
+        PointCloudXYZI pcl_xyzi = 7;
+        PointCloudXYZRGB pcl_xyzrgb = 8;
+        ImageBody image = 9;
+        OdomBody odom = 10;
+        Pose pose = 11;
+        DemoBody demo_msg = 12;
+    }
+}
+
+message StatusReply {
+    bool success = 1;         // 这个字段就可以表示 true/false
+    string message = 2;       // 可选的附加信息
+    int32 points_processed = 3; // 可选: 服务器处理了多少点
+}
+
+service PointCloudXYZIService {
+    //   rpc GetPointCloud (PointCloudXYZI) returns (StatusReply);
+    rpc StreamPointClouds (stream PointCloudXYZI) returns (StatusReply);
+}
+
+service ImageService {
+    rpc StreamImages (stream ImageBody) returns (StatusReply);
+}
+
+service RobotDataStreamer {
+
+    rpc StreamData (stream BasePacket) returns (StatusReply);
+}

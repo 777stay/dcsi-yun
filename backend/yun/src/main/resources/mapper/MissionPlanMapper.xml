@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  这个文件是为了让 MyBatis Plus 能够扫描到 Mapper 接口。
+  对于简单的注解式 SQL，这个文件可以是空的。
+  如果未来有复杂的 SQL，可以写在这里。
+-->
+<mapper namespace="com.whu.yun.mapper.MissionPlanMapper">
+
+</mapper>
